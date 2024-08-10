@@ -2,22 +2,27 @@ import 'package:animate_do/animate_do.dart';
 import 'package:cinemapedia/config/helpers/human_formats.dart';
 import 'package:cinemapedia/domain/entities/movie.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class MoviesHorizontalListview extends StatefulWidget {
-
   final List<Movie> movies;
   final String? title;
   final String? subTitle;
   final VoidCallback? loadNextPage;
 
-  const MoviesHorizontalListview({super.key, required this.movies, this.title, this.subTitle, this.loadNextPage});
+  const MoviesHorizontalListview(
+      {super.key,
+      required this.movies,
+      this.title,
+      this.subTitle,
+      this.loadNextPage});
 
   @override
-  State<MoviesHorizontalListview> createState() => _MoviesHorizontalListviewState();
+  State<MoviesHorizontalListview> createState() =>
+      _MoviesHorizontalListviewState();
 }
 
 class _MoviesHorizontalListviewState extends State<MoviesHorizontalListview> {
-
   final ScrollController scrollController = ScrollController();
 
   @override
@@ -25,10 +30,10 @@ class _MoviesHorizontalListviewState extends State<MoviesHorizontalListview> {
     // TODO: implement initState
     super.initState();
     scrollController.addListener(() {
+      if (widget.loadNextPage == null) return;
 
-      if(widget.loadNextPage == null) return;
-
-      if((scrollController.position.pixels + 200) >= scrollController.position.maxScrollExtent ){
+      if ((scrollController.position.pixels + 200) >=
+          scrollController.position.maxScrollExtent) {
         widget.loadNextPage!();
       }
     });
@@ -47,34 +52,31 @@ class _MoviesHorizontalListviewState extends State<MoviesHorizontalListview> {
       height: 350,
       child: Column(
         children: [
-          if (widget.title != null || widget.subTitle != null) 
-          _Title(title: widget.title, subTitle: widget.subTitle),
+          if (widget.title != null || widget.subTitle != null)
+            _Title(title: widget.title, subTitle: widget.subTitle),
           Expanded(
-            child: ListView.builder(
-              controller: scrollController,
-              itemCount: widget.movies.length,
-              scrollDirection: Axis.horizontal,
-              physics: const BouncingScrollPhysics(),
-              itemBuilder: (context, index) {
-                return FadeInRight(child: _Slide(movie: widget.movies[index]));
-              },
-            )
-          )
+              child: ListView.builder(
+            controller: scrollController,
+            itemCount: widget.movies.length,
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            itemBuilder: (context, index) {
+              return FadeInRight(child: _Slide(movie: widget.movies[index]));
+            },
+          ))
         ],
-        ),
+      ),
     );
   }
 }
 
 class _Slide extends StatelessWidget {
-
   final Movie movie;
 
   const _Slide({required this.movie});
 
   @override
   Widget build(BuildContext context) {
-
     final textStyles = Theme.of(context).textTheme;
 
     return Container(
@@ -92,10 +94,18 @@ class _Slide extends StatelessWidget {
                 fit: BoxFit.cover,
                 width: 150,
                 loadingBuilder: (context, child, loadingProgress) {
-                  if (loadingProgress == null) return FadeIn(child: child);
-                  return const Padding(
-                    padding:  EdgeInsets.all(8.0),
-                    child:  Center(child: CircularProgressIndicator(strokeWidth: 2,)),
+                  if (loadingProgress != null) {
+                    return const Padding(
+                      padding: EdgeInsets.all(8.0),
+                      child: Center(
+                          child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                      )),
+                    );
+                  }
+                  return GestureDetector(
+                    onTap: () => context.push('/movie/${movie.id}'),
+                    child: FadeIn(child: child),
                   );
                 },
               ),
@@ -115,11 +125,19 @@ class _Slide extends StatelessWidget {
             width: 150,
             child: Row(
               children: [
-                Icon(Icons.star_half_outlined, color: Colors.yellow.shade800, size: 15),
+                Icon(Icons.star_half_outlined,
+                    color: Colors.yellow.shade800, size: 15),
                 const SizedBox(width: 3),
-                Text(movie.voteAverage.toString(), style: textStyles.bodyMedium?.copyWith(color: Colors.yellow.shade800),),
+                Text(
+                  movie.voteAverage.toString(),
+                  style: textStyles.bodyMedium
+                      ?.copyWith(color: Colors.yellow.shade800),
+                ),
                 const Spacer(),
-                Text(HumanFormats.number(movie.popularity),style: textStyles.bodySmall,)
+                Text(
+                  HumanFormats.number(movie.popularity),
+                  style: textStyles.bodySmall,
+                )
               ],
             ),
           )
@@ -136,7 +154,6 @@ class _Title extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     final titleStyle = Theme.of(context).textTheme.titleLarge;
 
     return Container(
@@ -144,15 +161,19 @@ class _Title extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 10),
       child: Row(
         children: [
-          if(title != null)
-          Text(title!,style: titleStyle,),
+          if (title != null)
+            Text(
+              title!,
+              style: titleStyle,
+            ),
           const Spacer(),
-          if(subTitle != null)
-          FilledButton.tonal(
-            style: const ButtonStyle(visualDensity:VisualDensity.compact ),
-            onPressed: (){}, child: Text(subTitle!))
+          if (subTitle != null)
+            FilledButton.tonal(
+                style: const ButtonStyle(visualDensity: VisualDensity.compact),
+                onPressed: () {},
+                child: Text(subTitle!))
         ],
-        ),
+      ),
     );
   }
 }
